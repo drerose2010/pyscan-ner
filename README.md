@@ -42,6 +42,9 @@ pyscan-ner/
 ├── tests/
 │   └── test_ports.py    # pytest suite
 ├── pytest.ini           # pytest configuration
+├── .github/
+│   └── workflows/
+│       └── ci.yml       # CI Automation
 └── README.md
 ```
  
