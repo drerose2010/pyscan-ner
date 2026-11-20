@@ -1,7 +1,11 @@
 import argparse
+import errno
+import socket
+
 import pytest
 
 from main.argParser import parse_ports, argParse
+from main.portScan import scan_port, PortState
 
 # --- Valid specs -----------------------------------------------------------
 
@@ -137,3 +141,86 @@ def test_help_exits_cleanly():
     with pytest.raises(SystemExit) as exc:
         argParse("-h")
     assert exc.value.code == 0
+
+    # --- scan_port: real sockets on localhost ----------------------------------
+
+@pytest.fixture
+def listening_port():
+    """A port with a real listener on it. The OS picks a free one (port 0)."""
+    with socket.socket() as server:
+        server.bind(("127.0.0.1", 0))
+        server.listen(1)
+        yield server.getsockname()[1]
+
+
+@pytest.fixture
+def unused_port():
+    """A port that was free a moment ago and has nothing listening on it."""
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
+    return port
+
+
+def test_open_port(listening_port):
+    assert scan_port("127.0.0.1", listening_port, 0.5) == (listening_port, PortState.OPEN)
+
+
+def test_closed_port(unused_port):
+    assert scan_port("127.0.0.1", unused_port, 0.5) == (unused_port, PortState.CLOSED)
+
+
+def test_returns_port_and_state(unused_port):
+    port, state = scan_port("127.0.0.1", unused_port, 0.5)
+    assert port == unused_port
+    assert isinstance(state, PortState)
+
+
+def test_timeout_is_applied(monkeypatch, unused_port):
+    seen = []
+    original = socket.socket.settimeout
+
+    def spy(self, value):
+        seen.append(value)
+        original(self, value)
+
+    monkeypatch.setattr(socket.socket, "settimeout", spy)
+    scan_port("127.0.0.1", unused_port, 0.25)
+    assert seen == [0.25]
+
+
+# --- scan_port: exception-to-state mapping (mocked, no network) ------------
+
+def _raising_connect(exc):
+    def fake_connect(self, address):
+        raise exc
+    return fake_connect
+
+
+@pytest.mark.parametrize("exc, expected", [
+    (ConnectionRefusedError(), PortState.CLOSED),
+    (TimeoutError(), PortState.FILTERED),
+    (OSError(errno.EHOSTUNREACH, "No route to host"), PortState.FILTERED),
+    (OSError(errno.ENETUNREACH, "Network is unreachable"), PortState.FILTERED),
+    (OSError(errno.EPERM, "Operation not permitted"), PortState.FILTERED),
+    (OSError(errno.EMFILE, "Too many open files"), PortState.ERROR),
+    (OSError("something unexpected"), PortState.ERROR),   # no errno at all
+], ids=["refused", "timeout", "host-unreachable", "net-unreachable",
+        "eperm", "too-many-files", "unknown-oserror"])
+def test_exception_mapping(monkeypatch, exc, expected):
+    monkeypatch.setattr(socket.socket, "connect", _raising_connect(exc))
+    assert scan_port("10.0.0.1", 80, 0.1) == (80, expected)
+
+
+def test_connect_success_is_open(monkeypatch):
+    monkeypatch.setattr(socket.socket, "connect", lambda self, address: None)
+    assert scan_port("10.0.0.1", 443, 0.1) == (443, PortState.OPEN)
+
+
+# --- PortState -------------------------------------------------------------
+
+def test_port_state_values():
+    assert PortState.OPEN == "open"
+    assert PortState.CLOSED == "closed"
+    assert PortState.FILTERED == "filtered"
+    assert PortState.ERROR == "error"
