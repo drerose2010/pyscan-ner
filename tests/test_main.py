@@ -8,7 +8,7 @@ from main.portScan import PortState
 
 # The module file is named "pyscan-ner.py". A hyphen is not valid in an
 # import statement, so load it by name with importlib instead.
-app = importlib.import_module("main.pyscan-ner")
+app = importlib.import_module("main.pyscan_ner")
 
 
 # --- Helpers ---------------------------------------------------------------

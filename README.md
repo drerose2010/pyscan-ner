@@ -4,8 +4,9 @@
 ![socket](https://img.shields.io/badge/stdlib-socket-blue)
 ![IPy](https://img.shields.io/badge/IPy-1.2-green)
 ![pytest](https://img.shields.io/badge/tested_with-pytest-0A9EDC?logo=pytest&logoColor=white)
-![CI](https://github.com/<your-username>/pyscan-ner/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/drerose2010/pyscan-ner/actions/workflows/ci.yml/badge.svg)gi
 ![Status](https://img.shields.io/badge/status-work_in_progress-orange)
+![Version](https://img.shields.io/badge/version-v1.0-blue)
 
 A small TCP port scanner written in Python, built to learn how Nmap works. It uses the standard library's `socket` module and parses its own command-line arguments.
  
@@ -13,6 +14,8 @@ A small TCP port scanner written in Python, built to learn how Nmap works. It us
 
 > <b>AI Disclamer:</b> Claude was used to assist with planning, guidance and code review. For this project I avoided any generated code (outside of commends) as it would defeat the purpose of learning nmap and python networking
  
+**Version:** v1.0
+
 ## Current features
  
 - Command-line arguments for target, ports, and timeout
