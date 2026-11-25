@@ -9,20 +9,20 @@ class PortState(str, Enum):
     FILTERED = "filtered"
     ERROR = "error"
 
-def scan_port(ip: str,port: int, timeout: float) -> tuple[int, PortState]:
+def scan_port(ip: str,port: int, timeout: float) -> tuple[int, PortState, str]:
 
     with socket.socket() as sock: # Opens a socket and automatically closes it when done
         sock.settimeout(timeout)
 
         try:
             sock.connect((ip, port))
-            return port, PortState.OPEN   
+            return port, PortState.OPEN, "Connection successful" 
         except ConnectionRefusedError:
-            return port, PortState.CLOSED       
-        except TimeoutError:
-            return port, PortState.FILTERED    
+            return port, PortState.CLOSED, "Connection refused"
+        except TimeoutError as e:
+            return port, PortState.FILTERED, str(e)
         except OSError as e:
             if e.errno in (errno.EHOSTUNREACH, errno.ENETUNREACH, errno.EPERM):
-                return port, PortState.FILTERED
+                return port, PortState.FILTERED, str(e)
             else:
-                return port, PortState.ERROR
+                return port, PortState.ERROR, str(e)

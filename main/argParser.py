@@ -23,7 +23,7 @@ import argparse
 from argparse import Namespace
 
 
-def argParse(cmd: str) -> list:
+def argParse(argv=None) -> argparse.Namespace:
     """
     Parse a command-line style string into pyscan arguments.
 
@@ -52,7 +52,8 @@ def argParse(cmd: str) -> list:
     parser.add_argument("-p", "--ports", type=str, default="1-1024", help="Ports to scan, e.g. '80', '1-1024', '22,80,443'")
     parser.add_argument("--timeout", type=float, default=1.0, help="Per-connection timeout in seconds (default: 1.0)")
 
-    return parser.parse_args(cmd.split())
+    #return parser.parse_args(cmd.split())
+    return parser.parse_args(argv)
 
 
 def parse_ports(port_str: str) -> list:

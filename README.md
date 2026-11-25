@@ -4,11 +4,14 @@
 ![socket](https://img.shields.io/badge/stdlib-socket-blue)
 ![IPy](https://img.shields.io/badge/IPy-1.2-green)
 ![pytest](https://img.shields.io/badge/tested_with-pytest-0A9EDC?logo=pytest&logoColor=white)
+![CI](https://github.com/<your-username>/pyscan-ner/actions/workflows/ci.yml/badge.svg)
 ![Status](https://img.shields.io/badge/status-work_in_progress-orange)
- 
+
 A small TCP port scanner written in Python, built to learn how Nmap works. It uses the standard library's `socket` module and parses its own command-line arguments.
  
 > Work in progress. Learning project, not a replacement for Nmap.
+
+> <b>AI Disclamer:</b> Claude was used to assist with planning, guidance and code review. For this project I avoided any generated code (outside of commends) as it would defeat the purpose of learning nmap and python networking
  
 ## Current features
  
@@ -16,6 +19,7 @@ A small TCP port scanner written in Python, built to learn how Nmap works. It us
 - Port spec parsing: single ports, lists, and ranges (`80`, `22,80,443`, `1-1024`, `22,80,100-103`)
 - TCP connect scan that reports each port as `open`, `closed`, `filtered`, or `error`
 - Unit tests with pytest
+
 ## Requirements
  
 - Python 3.11+
