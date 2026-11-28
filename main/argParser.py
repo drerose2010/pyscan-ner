@@ -20,7 +20,6 @@
 # ---------------------------------------------------------------------------
 
 import argparse
-from argparse import Namespace
 
 
 def argParse(argv=None) -> argparse.Namespace:
@@ -51,6 +50,7 @@ def argParse(argv=None) -> argparse.Namespace:
     parser.add_argument("-ip", type=str, help="IP address, CIDR range, or hostname to scan")
     parser.add_argument("-p", "--ports", type=str, default="1-1024", help="Ports to scan, e.g. '80', '1-1024', '22,80,443'")
     parser.add_argument("--timeout", type=float, default=1.0, help="Per-connection timeout in seconds (default: 1.0)")
+    parser.add_argument("--threads", type=positive_int, default=50, help="Number of threads to use for scanning (default: 50)")
 
     #return parser.parse_args(cmd.split())
     return parser.parse_args(argv)
@@ -100,3 +100,9 @@ def parse_ports(port_str: str) -> list:
             portSet.add(int(port))
 
     return sorted(portSet)
+
+def positive_int(value: str) -> int:
+    n = int(value)
+    if n < 1:
+        raise argparse.ArgumentTypeError("must be at least 1")
+    return n

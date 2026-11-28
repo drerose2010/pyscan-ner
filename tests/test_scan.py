@@ -3,7 +3,7 @@ import socket
 
 import pytest
 
-from main.portScan import scan_port, PortState
+from main.portScan import PortState, scan_port
 
 # scan_port returns (port, state, message).
 # The listening_port and unused_port fixtures live in conftest.py.

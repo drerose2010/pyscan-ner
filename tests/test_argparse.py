@@ -5,6 +5,7 @@ import pytest
 
 from main.argParser import argParse
 
+
 def test_returns_namespace():
     assert isinstance(argParse(["-ip", "10.0.0.1"]), argparse.Namespace)
 

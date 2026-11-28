@@ -1,7 +1,7 @@
-import socket
-from .argParser import parse_ports, argParse
-from enum import Enum
 import errno
+import socket
+from enum import Enum
+
 
 class PortState(str, Enum):
     OPEN = "open"

@@ -1,10 +1,9 @@
-from pprint import pprint
 import sys
-
-from main.argParser import parse_ports, argParse
-from main.portScan import scan_port
 from collections import Counter
-from main.portScan import PortState
+from concurrent.futures import ThreadPoolExecutor
+
+from main.argParser import argParse, parse_ports
+from main.portScan import PortState, scan_port
 
 
 def main(argv=None) -> None:
@@ -30,30 +29,23 @@ def main(argv=None) -> None:
     # 4. Scan (sequential for now)
     results = []  
     try:
-        for port in ports:
-            result = scan_port(args.ip, port, args.timeout)
-            #print(result)
-            results.append((port, result))
-    except Exception as e:
+        with ThreadPoolExecutor(max_workers=args.threads) as pool:
+            results = list(pool.map(lambda p: scan_port(args.ip, p, args.timeout), ports))
+            
+    except Exception as e:  # noqa: BLE001 - top-level handler for the CLI
         print(f"Error scanning ports: {e}")
         sys.exit(1)
 
-    print(results)
     # 5. Report
     # open ports: loop over results, print only the OPEN ones
-    for port, (port, state, message) in results:
+    for port, state, message in results:
         if state == PortState.OPEN:
             print(f" # Port {port}: Open")
-    
-    # summary: Counter of states, e.g. "993 closed, 28 filtered"
-    resultList = []
-    for portScanResult in results:
-        resultList.append(portScanResult[1][1])
 
-    counts = Counter(resultList)
-    summary = [f"{n} {state.value}" for state, n in counts.items()]
-    for stateTotal in summary:
-        print(f"State Summary: {stateTotal}")
+    # summary: Counter of states, e.g. "993 closed, 28 filtered"
+    counts = Counter(state for _, state, _ in results)
+    for state, n in counts.items():
+        print(f"State Summary: {n} {state.value}")
 
 if __name__ == "__main__":
     main()

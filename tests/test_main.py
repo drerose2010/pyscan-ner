@@ -88,10 +88,8 @@ def test_scans_every_requested_port(monkeypatch):
 def test_default_ports_are_1_to_1024(monkeypatch):
     fake = install_fake_scan(monkeypatch)
     app.main(["-ip", "10.0.0.1"])
-    ports = [port for _, port, _ in fake.calls]
-    assert len(ports) == 1024
-    assert ports[0] == 1
-    assert ports[-1] == 1024
+    ports = sorted(port for _, port, _ in fake.calls)
+    assert ports == list(range(1, 1025))
 
 
 def test_target_and_timeout_are_passed_through(monkeypatch):

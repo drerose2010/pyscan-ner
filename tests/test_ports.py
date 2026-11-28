@@ -2,7 +2,6 @@ import pytest
 
 from main.argParser import parse_ports
 
-
 # --- Valid specs -----------------------------------------------------------
 
 @pytest.mark.parametrize("spec, expected", [

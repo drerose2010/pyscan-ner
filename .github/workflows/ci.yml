@@ -1,37 +1,73 @@
-
 name: CI
- 
+
 on:
   push:
     branches: [main]
   pull_request:
- 
-# The workflow only needs to read the repo
+
 permissions:
   contents: read
- 
+
 jobs:
   test:
+    name: Tests (${{ matrix.os }}, py${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: ["3.11", "3.12", "3.13", "3.14"]
- 
     steps:
-      - name: Check out the code
-        uses: actions/checkout@v4
- 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
- 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install IPy pytest
- 
-      - name: Run tests
-        run: pytest -v
+          pip install -r requirements.txt pytest pytest-cov
+      - name: Run tests with coverage
+        run: pytest -v --cov=main --cov-report=term-missing --cov-fail-under=80
+
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check .
+
+  security:
+    name: Security (bandit, pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install bandit pip-audit
+      - name: Static analysis
+        run: bandit -r main -ll
+      - name: Known vulnerabilities in dependencies
+        run: pip-audit -r requirements.txt
+
+  smoke:
+    name: Smoke test (real scan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Scan a local server and check the output
+        run: |
+          python -m http.server 8765 --bind 127.0.0.1 &
+          SERVER_PID=$!
+          sleep 1
+          python -m main.pyscan_ner -ip 127.0.0.1 -p 8765 --timeout 0.5 | tee out.txt
+          kill $SERVER_PID
+          grep -q "Port 8765: Open" out.txt
